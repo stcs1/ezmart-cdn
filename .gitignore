@@ -1,0 +1,87 @@
+# =========================
+# Terraform
+# =========================
+
+# Local .terraform directories
+**/.terraform/*
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude all .tfvars files (may contain secrets)
+*.tfvars
+*.tfvars.json
+
+# Ignore override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore Terraform CLI config files
+.terraformrc
+terraform.rc
+
+# Terraform lock file
+# Keep this tracked if working in a team
+# Comment this line if you WANT to commit it
+.terraform.lock.hcl
+
+# =========================
+# AWS / Credentials
+# =========================
+
+# AWS credentials
+.aws/
+
+# Environment variable files
+.env
+.env.*
+
+# =========================
+# VS Code
+# =========================
+
+.vscode/
+
+# =========================
+# Logs
+# =========================
+
+*.log
+
+# =========================
+# OS Files
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+# Node.js (if using frontend)
+# =========================
+
+node_modules/
+
+# =========================
+# Python
+# =========================
+
+__pycache__/
+*.pyc
+
+# =========================
+# Build / Dist
+# =========================
+
+dist/
+build/

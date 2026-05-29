@@ -1,0 +1,54 @@
+{
+  "ezmart-products": [
+    {
+      "PutRequest": {
+        "Item": {
+          "product_id": { "S": "101" },
+          "name": { "S": "Wireless Headphones" },
+          "price": { "N": "49.99" },
+          "category": { "S": "Electronics" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "product_id": { "S": "102" },
+          "name": { "S": "Wireless smart Headphones" },
+          "price": { "N": "59.99" },
+          "category": { "S": "Electronics" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "product_id": { "S": "103" },
+          "name": { "S": "Smart Watch" },
+          "price": { "N": "40.99" },
+          "category": { "S": "Electronics" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "product_id": { "S": "104" },
+          "name": { "S": "Smart tv" },
+          "price": { "N": "400.49" },
+          "category": { "S": "Electronics" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "product_id": { "S": "105" },
+          "name": { "S": "Bluetooth earphones" },
+          "price": { "N": "29.99" },
+          "category": { "S": "Electronics" }
+        }
+      }
+    }
+  ]
+}
