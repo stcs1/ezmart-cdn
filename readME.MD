@@ -220,27 +220,7 @@ Admin dashboard
 Image uploads
 
 Order tracking
-
-Useful AWS Documentation:
-
-AWS Terraform Provider
-
-AWS CloudFront Documentation
-
-AWS Lambda Documentation
-
-Terraform Documentation
-
-
-
-1 / 6
-Hosting static website and accessing AWS Data from webpages
-Serverless patterns in AWS
-
-Web application - Serverless Applications Lens
-AWS Solutions Constructs
-Marrying Terraform and Serverless Framework
-
+Will add references to lambda and other aws documentations later.
 
 
 devopsaddict
@@ -384,6 +364,280 @@ This is important because otherwise Terraform may not detect Lambda code updates
 
 To write to AWS dynamodb powershell script/payload:
 
-Command to write batch-items from .json file to aws dyanamodb
+Command to write batch-items from products.json file to aws dyanamodb
  aws dynamodb batch-write-item `             
 >>   --request-items file://C:\Users\zahid\src\projects\ezmart\cdn-lambda-dyanamodb\products.json
+
+
+Steps to add users to my frontend UI
+
+To add users who can log in to your EZMart website, the best AWS-native approach is:
+
+Frontend (HTML/JS on S3 + CloudFront)
+
+Authentication service
+
+Backend API
+
+Database for user profiles
+
+For your current setup (S3 static website + CloudFront + DynamoDB + Lambda), the easiest and most scalable solution is:
+
+Use  Amazon Cognito for login/signup
+
+Use  API Gateway +  AWS Lambda for backend APIs
+
+Store user data in  Amazon DynamoDB
+
+Recommended Architecture
+
+https://images.openai.com/static-rsc-4/VlRSXD6U_kFUUYLyiQRKMxbPHjz7imQg20OK5r8RyrI2NlJsoPbH1R_8xBJ7ehBtmnuwAIMFbG4JocuHdI9eHIsPX6rh8vErhbMfP7qS1TX-t-eO6So8l4O8hleK09T7hIKzawiJuudYXFNnDkZwQ4ilvqyyBYIl83hUwcsuh7cXg4Gldj7VOJE7-kpOyM8q?purpose=fullsize
+
+https://images.openai.com/static-rsc-4/bS1X6rA8_tqZDTH5hUTYbruG-_YkrV0zEpjhO2rEvktPYUEb_ZTCEUxZPdNd35BRQ1TjqCVs7T8rH6lT42QKPQcE2kVnYQUEnw4imV9pH0ESFwG2pVZKBfxCUrJoV9L4pLB7doHD0NoHTd71E9PG5bMHEKE5tywPiefUKv_teafJfrgB65YcIFhcS2ovNNJE?purpose=fullsize
+
+https://images.openai.com/static-rsc-4/eXosG8bNNOwxUiEAe9RWXtliQzQyO3scKKeTTRzbvyLJs4UKC68YTiDDxjBMUijniA6nU_hptDYm7PzhMrkVE05XHvvFRXxTnfXk0KJf948KaDpFZP68_k3I-BT1IGP9d8nGPGmXL1T9yHwtZ3gDPCx3Dn5ZoWRfkV3Rp98XNclOEjVaq3lxYuLnN9OoVwNV?purpose=fullsize
+6
+Flow:
+
+User → CloudFront → S3 Website
+                    ↓
+               Login Form
+                    ↓
+              Amazon Cognito
+                    ↓
+          JWT Access Token Returned
+                    ↓
+        API Gateway + Lambda
+                    ↓
+               DynamoDB
+Step 1 — Create a Cognito User Pool
+Go to:
+
+Amazon Cognito Console
+
+Then:
+
+Create User Pool
+
+Choose:
+
+Email login
+
+Password login
+
+Configure:
+
+Username = email
+
+Password policy
+
+Create App Client
+
+Enable:
+
+ALLOW_USER_PASSWORD_AUTH
+
+Save:
+
+User Pool ID
+
+App Client ID
+
+Example:
+
+User Pool ID:
+us-east-1_abc123
+
+App Client ID:
+4h6exampleclientid
+Step 2 — Add Login HTML
+Example login page:
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EZMart Login</title>
+</head>
+<body>
+
+<h2>Login</h2>
+
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+<script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.6/dist/amazon-cognito-identity.min.js"></script>
+
+<script>
+const poolData = {
+  UserPoolId: 'us-east-1_abc123',
+  ClientId: '4h6exampleclientid'
+};
+
+const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+function login() {
+
+  const authenticationData = {
+    Username: document.getElementById("email").value,
+    Password: document.getElementById("password").value
+  };
+
+  const authenticationDetails =
+    new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+
+  const userData = {
+    Username: document.getElementById("email").value,
+    Pool: userPool
+  };
+
+  const cognitoUser =
+    new AmazonCognitoIdentity.CognitoUser(userData);
+
+  cognitoUser.authenticateUser(authenticationDetails, {
+
+    onSuccess: function(result) {
+
+      const token = result.getIdToken().getJwtToken();
+
+      localStorage.setItem("token", token);
+
+      alert("Login successful!");
+    },
+
+    onFailure: function(err) {
+      alert(err.message || JSON.stringify(err));
+    }
+  });
+}
+</script>
+
+</body>
+</html>
+Upload this to your S3 bucket.
+
+Step 3 — Add Signup Page
+Example:
+
+<input type="email" id="email">
+<input type="password" id="password">
+
+<button onclick="signup()">Create Account</button>
+JS:
+
+function signup() {
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  userPool.signUp(email, password, [], null, function(err, result) {
+
+    if (err) {
+      alert(err.message || JSON.stringify(err));
+      return;
+    }
+
+    alert("Signup successful!");
+  });
+}
+Step 4 — Protect Your APIs
+When calling Lambda APIs:
+
+fetch("https://YOUR_API.execute-api.us-east-1.amazonaws.com/prod/products", {
+
+  headers: {
+    Authorization: localStorage.getItem("token")
+  }
+});
+Then configure:
+
+API Gateway Authorizer
+
+Cognito User Pool Authorizer
+
+This ensures only logged-in users can access your APIs.
+
+Step 5 — Store User Profiles in DynamoDB
+Example table:
+
+ezmart-users
+Structure:
+
+userId	email	createdAt
+123		2026-05-29
+Recommended Features
+You can later add:
+
+Password reset
+
+Email verification
+
+Google login
+
+Facebook login
+
+Admin dashboard
+
+Seller accounts
+
+Buyer accounts
+
+JWT session expiration
+
+MFA authentication
+
+Cheapest AWS Setup
+Your cheapest production setup:
+
+Service	Purpose
+S3	Host frontend
+CloudFront	CDN
+Cognito	Authentication
+API Gateway	APIs
+Lambda	Backend
+DynamoDB	User/product data
+This is fully serverless and scales automatically.
+
+Alternative (Not Recommended)
+You could also:
+
+Store usernames/passwords in DynamoDB
+
+Build login manually in Lambda
+
+But this is:
+
+Less secure
+
+Harder to maintain
+
+Dangerous if passwords are stored improperly
+
+Cognito is much safer.
+
+Best Production Setup for EZMart
+
+https://images.openai.com/static-rsc-4/U76RVh_58wrpl-dX92HIzn60r_hmoNrdaDaKwnmXmbpplummO8UjXDpSwRjy0jeAAlIQH6JMw0gyqfCNlHbFUNOfQg_JY_1xTDvSCZ__U7hAz3MtTNDKttT12srdtAX9woMidmYbDAyobDNBP6QRKgmHHQYQ76x79TmBRWjbwgG09YUBMvoWT3uP4MNBEsB7?purpose=fullsize
+
+https://images.openai.com/static-rsc-4/i1C-pQrdi6pZSwqXB7KRX695j-9FO15I23htiSrhZjzbCoHrfUxuADmBZUgvikupi89UGizDmkZLNTixm8dPT62Qyml38yO-bFuY8A0-ov5CLV6g-gokG1UDHLggsHKmibRSb8ATkCkenxreMBegeUh8TqXsnWSOVqgMYX1z7lauD-5gG63kD8E30q6Kf-18?purpose=fullsize
+
+https://images.openai.com/static-rsc-4/OCTzOtRZPtrkpujnZ7G0WhwJfJdvFOZYh00Q33ZbGxSbQo067rOOTmYYmQ0xx8DD49kmAErJz0lXp3C1Teneg20dC-ZsKXG2XB19YL26MDjOlds7xbGcf6j-DMX_qOm20HKXm85fL8OAj9rjLC-MbfIdkf6HDwm6Hq-qAynoYjMB6_PMmLneaYSCpPUSSbRm?purpose=fullsize
+5
+Recommended stack:
+
+Frontend:
+S3 + CloudFront
+
+Authentication:
+Cognito
+
+Backend:
+API Gateway + Lambda
+
+Database:
+DynamoDB
+This is essentially how modern serverless applications are built on .
+
+
+

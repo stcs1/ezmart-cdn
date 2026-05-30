@@ -40,6 +40,32 @@
 
     } 
 
+    #User Registration and Login System
+
+<h2>Create Account</h2>
+
+<input type="text" id="name" placeholder="Full Name">
+
+<input type="email" id="email" placeholder="Email">
+
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="registerUser()">
+  Register
+</button>
+
+<p id="message"></p>
+
+<body>
+
+<h1>EZMart</h1>
+
+<button id="loginBtn">
+  Login
+</button>
+
+</body>
+
  
 
     /* container utility */ 
@@ -940,11 +966,9 @@
 
     { id: 9, name: "Limited Edition Action Figure", price: 34.99, category: "collectibles", emoji: "🤖", condition: "Mint", stock: true }, 
 
-    { id: 10, name: "Bluetooth Speaker Mini", price: 29.99, category: "electronics", emoji: "🔊", condition: "New", stock: true } 
+    { id: 10, name: "Bluetooth Speaker Mini", price: 40.99, category: "electronics", emoji: "🔊", condition: "New", stock: true } 
 
   ]; 
-
- 
 
   // Trading offers (buy/sell/swap secondhand or exchange) 
 
@@ -1403,6 +1427,7 @@
   document.addEventListener("DOMContentLoaded", init); 
 
 </script> 
+
 
 </body> 
 
