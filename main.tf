@@ -4,39 +4,6 @@ resource "aws_api_gateway_rest_api" "api_gateway" {
   description = "API Gateway for ezmart application"
 }
 
-resource "aws_s3_bucket" "web" {
-  bucket = "ezmart-website-2007"
-}
-
-# Bucket Policy
-resource "aws_s3_bucket_policy" "website_policy" {
-  bucket = aws_s3_bucket.web.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "AllowCloudFrontServicePrincipal"
-        Effect = "Allow"
-
-        Principal = {
-          Service = "cloudfront.amazonaws.com"
-        }
-
-        Action = "s3:GetObject"
-
-        Resource = "${aws_s3_bucket.web.arn}/*"
-
-        Condition = {
-          StringEquals = {
-            "AWS:SourceArn" = aws_cloudfront_distribution.cdn.arn
-          }
-        }
-      }
-    ]
-  })
-}
-
 resource "aws_apigatewayv2_api" "http_api" {
   name          = "ezmart-http-api"
   protocol_type = "HTTP"
@@ -57,7 +24,7 @@ resource "aws_cloudfront_distribution" "cdn" {
     domain_name              = aws_s3_bucket.web.bucket_regional_domain_name
     origin_id                = "s3Origin"
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
-}
+  }
 
   enabled             = true
   default_root_object = "index.html"
