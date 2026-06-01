@@ -512,7 +512,6 @@ function login() {
   });
 }
 </script>
-
 </body>
 </html>
 Upload this to your S3 bucket.
@@ -641,3 +640,196 @@ This is essentially how modern serverless applications are built on .
 
 
 
+To Create a user Registration Page. Follow the steps below
+For EZMart
+
+If you're building EZMart, you could create a registration page:
+
+Name
+Email
+Password
+Phone
+Address
+
+and store:
+
+{
+  "user_id": "uuid",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "3025551234",
+  "created_at": "2026-05-31T12:00:00Z"
+}
+
+If you already have your CloudFront + S3 + Lambda + DynamoDB setup running, I can generate the complete Terraform code for:
+
+DynamoDB users table
+Lambda function
+API Gateway
+Registration HTML page
+Login page
+
+that plugs directly into your existing EZMart infrastructure.
+
+sure it is already running
+
+Since your CloudFront + S3 + Lambda + DynamoDB environment is already running, you mainly need to add a User Registration API and connect it to your webpage.
+
+DynamoDB Users Table
+
+If you don't already have one:
+
+aws dynamodb create-table \
+  --table-name ezmart-users \
+  --attribute-definitions AttributeName=user_id,AttributeType=S \
+  --key-schema AttributeName=user_id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST
+Lambda Function
+
+Create a Lambda called create-user.
+
+import json
+import boto3
+import uuid
+from datetime import datetime
+
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('ezmart-users')
+
+def lambda_handler(event, context):
+
+    body = json.loads(event['body'])
+
+    user = {
+        "user_id": str(uuid.uuid4()),
+        "name": body.get("name"),
+        "email": body.get("email"),
+        "created_at": datetime.utcnow().isoformat()
+    }
+
+    table.put_item(Item=user)
+
+    return {
+        "statusCode": 200,
+        "headers": {
+            "Access-Control-Allow-Origin": "*"
+        },
+        "body": json.dumps(user)
+    }
+API Gateway
+
+Create:
+
+POST /users
+
+Example:
+
+https://your-api-id.execute-api.us-east-1.amazonaws.com/prod/users
+
+Integrate it with the Lambda above.
+
+Registration Form
+
+Add this to your index.html or a dedicated register.html.
+
+<div class="register-box">
+    <h2>Create Account</h2>
+
+    <input type="text" id="name" placeholder="Full Name">
+
+    <input type="email" id="email" placeholder="Email Address">
+
+    <button onclick="registerUser()">
+        Create Account
+    </button>
+
+    <p id="status"></p>
+</div>
+JavaScript
+
+Replace the API URL with your actual endpoint.
+
+<script>
+async function registerUser() {
+
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+
+    const response = await fetch(
+        "https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/prod/users",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email
+            })
+        }
+    );
+
+    const data = await response.json();
+
+    document.getElementById("status").innerHTML =
+        "Account created successfully!";
+}
+</script>
+If You're Using Terraform
+
+You likely already have resources like:
+
+resource "aws_dynamodb_table" "products" {}
+resource "aws_lambda_function" "products_api" {}
+resource "aws_api_gateway_rest_api" "api" {}
+
+Add:
+
+resource "aws_dynamodb_table" "users" {
+  name         = "ezmart-users"
+  billing_mode = "PAY_PER_REQUEST"
+
+  hash_key = "user_id"
+
+  attribute {
+    name = "user_id"
+    type = "S"
+  }
+}
+
+Then point your new Lambda at:
+
+environment {
+  variables = {
+    USERS_TABLE = aws_dynamodb_table.users.name
+  }
+}
+
+For a production EZMart marketplace, I'd also recommend adding:
+
+Password hashing (never store plain-text passwords).
+Email uniqueness (use email as a secondary index or primary key).
+User login with JWT tokens.
+User profiles.
+Product ownership (seller_id on products).
+Order history.
+
+A common DynamoDB design is:
+
+Users Table
+
+{
+  "user_id": "uuid",
+  "email": "john@example.com",
+  "name": "John Doe"
+}
+
+Products Table
+
+{
+  "product_id": "101",
+  "seller_id": "user_uuid",
+  "name": "iPhone 15"
+}
+
+This lets you track which EZMart user owns each product.
