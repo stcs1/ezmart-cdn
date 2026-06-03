@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "web" {
-  bucket = "ezmart-website-2007"
+  bucket = "ezmart-s3-website"
 }
 
 # Bucket Policy
